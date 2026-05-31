@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>贝斯特订单系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; max-width: 480px; margin: 0 auto; background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    .header { background: #1E90FF; color: white; padding: 25px 20px; text-align: center; }
+    .header-title { font-size: 22px; font-weight: bold; }
+    .header-subtitle { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+    .container { padding: 15px; }
+    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .card-title { font-size: 17px; font-weight: bold; color: #333; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #f0f0f0; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 14px 16px; font-size: 16px; border: 2px solid #e8e8e8; border-radius: 10px; background: #fafafa; outline: none; }
+    .form-group input:focus, .form-group textarea:focus { border-color: #1E90FF; background: white; }
+    .form-group textarea { height: 120px; resize: none; }
+    .form-row { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; }
+    .form-row .form-group { width: 48%; }
+    .order-item { border: 2px solid #e8e8e8; border-radius: 12px; padding: 15px; margin-bottom: 12px; }
+    .order-item-header { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed #e8e8e8; }
+    .order-item-num { background: #1E90FF; color: white; width: 32px; height: 32px; border-radius: 50%; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center; font-size: 14px; font-weight: bold; }
+    .order-item-body { margin-top: 10px; }
+    .order-item-body .row { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; margin-bottom: 10px; }
+    .order-item-body .row .cell { width: 48%; }
+    .order-item-body .row .cell.full { width: 100%; }
+    .order-item-body .row .cell.half { width: 30%; }
+    .order-item-body .row .cell.price { width: 20%; }
+    .order-item-body input { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #e8e8e8; border-radius: 8px; background: #fafafa; }
+    .order-item-body input:focus { border-color: #1E90FF; background: white; }
+    .order-item-body .total-cell { width: 100%; padding: 12px; background: #fff3f3; border-radius: 8px; text-align: center; font-size: 16px; font-weight: bold; color: #E63946; }
+    .btn-add { width: 100%; height: 48px; border: 2px dashed #1E90FF; border-radius: 12px; background: #f0f8ff; color: #1E90FF; font-size: 16px; margin-top: 10px; }
+    .total-section { background: #fff3f3; border-radius: 12px; padding: 20px; margin-top: 15px; }
+    .total-row { display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; -webkit-box-align: center; -ms-flex-align: center; align-items: center; }
+    .total-label { font-size: 18px; color: #333; }
+    .total-value { font-size: 28px; font-weight: bold; color: #E63946; }
+    .btn-submit { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: #1E90FF; color: white; font-size: 20px; font-weight: bold; border: none; }
+    .btn-submit:active { opacity: 0.9; }
+    .toast { position: fixed; top: 50%; left: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 18px 30px; border-radius: 12px; font-size: 16px; z-index: 300; display: none; }
+    .toast.show { display: block; }
+    .preview-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; padding: 20px; overflow-y: auto; }
+    .preview-overlay.show { display: block; }
+    .preview-content { background: white; border-radius: 16px; padding: 20px; margin-top: 20px; margin-bottom: 80px; }
+    .preview-title { font-size: 20px; font-weight: bold; color: #1E90FF; text-align: center; margin-bottom: 20px; }
+    .preview-close { position: fixed; top: 20px; right: 20px; width: 44px; height: 44px; background: white; border-radius: 50%; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center; font-size: 28px; color: #666; }
+    .preview-item { padding: 12px 0; border-bottom: 1px solid #eee; }
+    .preview-item:last-child { border-bottom: none; }
+    .preview-label { font-size: 14px; color: #666; }
+    .preview-value { font-size: 16px; color: #333; margin-top: 4px; }
+    .preview-value.total { color: #E63946; font-weight: bold; font-size: 18px; }
+    .btn-copy { width: 100%; height: 50px; background: #1E90FF; color: white; font-size: 17px; font-weight: bold; border: none; border-radius: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-title">贝斯特</div>
+    <div class="header-subtitle">国内外客户订单</div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-title">基本信息</div>
+      <div class="form-group">
+        <label>业务员</label>
+        <input type="text" placeholder="请输入业务员姓名" id="salesman" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>下单日期</label>
+          <input type="text" placeholder="YYYY-MM-DD" id="orderDate" />
+        </div>
+        <div class="form-group">
+          <label>要求交期</label>
+          <input type="text" placeholder="YYYY-MM-DD" id="deliveryDate" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>客户</label>
+        <input type="text" placeholder="请输入客户名称" id="customer" />
+      </div>
+      <div class="form-group">
+        <label>地区</label>
+        <input type="text" placeholder="请输入地区" id="exportArea" />
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">订单明细</div>
+      <div id="orderList">
+        <div class="order-item" data-index="0">
+          <div class="order-item-header">
+            <div class="order-item-num">1</div>
+          </div>
+          <div class="order-item-body">
+            <div class="row">
+              <div class="cell"><input type="text" placeholder="客户型号" data-field="customerModel" /></div>
+              <div class="cell"><input type="text" placeholder="贝斯特型号" data-field="bestModel" /></div>
+            </div>
+            <div class="row">
+              <div class="cell half"><input type="number" placeholder="数量" data-field="quantity" /></div>
+              <div class="cell half"><input type="number" placeholder="单价" data-field="unitPrice" step="0.01" /></div>
+              <div class="cell price total-cell" data-field="totalValue">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addRow()">+ 添加一行</button>
+      <div class="total-section">
+        <div class="total-row">
+          <span class="total-label">订单总额</span>
+          <span class="total-value" id="totalAmount">¥0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">包装要求</div>
+      <textarea placeholder="请输入包装要求..." id="packagingReq"></textarea>
+    </div>
+  </div>
+
+  <button class="btn-submit" onclick="submitForm()">提交订单</button>
+
+  <div class="preview-overlay" id="previewOverlay">
+    <div class="preview-close" onclick="document.getElementById('previewOverlay').classList.remove('show')">×</div>
+    <div class="preview-content" id="previewContent"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // 腾讯表单配置
+    const FORM_URL = 'https://docs.qq.com/api/form/submit?formId=DTEJTZktvZ2pZb0pL';
+
+    function addRow() {
+      var orderList = document.getElementById('orderList');
+      var index = orderList.children.length;
+      var newItem = document.createElement('div');
+      newItem.className = 'order-item';
+      newItem.setAttribute('data-index', index);
+      newItem.innerHTML = `
+        <div class="order-item-header">
+          <div class="order-item-num">${index + 1}</div>
+        </div>
+        <div class="order-item-body">
+          <div class="row">
+            <div class="cell"><input type="text" placeholder="客户型号" data-field="customerModel" /></div>
+            <div class="cell"><input type="text" placeholder="贝斯特型号" data-field="bestModel" /></div>
+          </div>
+          <div class="row">
+            <div class="cell half"><input type="number" placeholder="数量" data-field="quantity" /></div>
+            <div class="cell half"><input type="number" placeholder="单价" data-field="unitPrice" step="0.01" /></div>
+            <div class="cell price total-cell" data-field="totalValue">--</div>
+          </div>
+        </div>
+      `;
+      orderList.appendChild(newItem);
+      bindEvents();
+    }
+
+    function bindEvents() {
+      var inputs = document.querySelectorAll('.order-item input');
+      inputs.forEach(function(input) {
+        input.oninput = function() {
+          var item = this.closest('.order-item');
+          updateItemTotal(item);
+          updateTotal();
+        };
+      });
+    }
+
+    function updateItemTotal(item) {
+      var qty = parseFloat(item.querySelector('[data-field="quantity"]').value) || 0;
+      var price = parseFloat(item.querySelector('[data-field="unitPrice"]').value) || 0;
+      var total = (qty * price).toFixed(2);
+      item.querySelector('[data-field="totalValue"]').textContent = total > 0 ? '¥' + total : '--';
+    }
+
+    function updateTotal() {
+      var total = 0;
+      document.querySelectorAll('[data-field="totalValue"]').forEach(function(el) {
+        var text = el.textContent;
+        if (text !== '--') {
+          total += parseFloat(text.replace('¥', '')) || 0;
+        }
+      });
+      document.getElementById('totalAmount').textContent = '¥' + total.toFixed(2);
+    }
+
+    function submitForm() {
+      var salesman = document.getElementById('salesman').value;
+      var customer = document.getElementById('customer').value;
+      
+      if (!salesman || !customer) {
+        showToast('请填写业务员和客户');
+        return;
+      }
+
+      var items = [];
+      var orderItems = document.querySelectorAll('.order-item');
+      for (var i = 0; i < orderItems.length; i++) {
+        var item = orderItems[i];
+        var qty = item.querySelector('[data-field="quantity"]').value;
+        if (qty) {
+          items.push({
+            row: i + 1,
+            customerModel: item.querySelector('[data-field="customerModel"]').value,
+            bestModel: item.querySelector('[data-field="bestModel"]').value,
+            quantity: qty,
+            unitPrice: item.querySelector('[data-field="unitPrice"]').value,
+            total: item.querySelector('[data-field="totalValue"]').textContent
+          });
+        }
+      }
+
+      if (items.length === 0) {
+        showToast('请至少添加一个商品');
+        return;
+      }
+
+      var orderData = {
+        '业务员': salesman,
+        '客户': customer,
+        '下单日期': document.getElementById('orderDate').value,
+        '要求交期': document.getElementById('deliveryDate').value,
+        '地区': document.getElementById('exportArea').value,
+        '包装要求': document.getElementById('packagingReq').value,
+        '订单明细': JSON.stringify(items, null, 2),
+        '订单总额': parseFloat(document.getElementById('totalAmount').textContent.replace('¥', ''))
+      };
+
+      var html = '<div class="preview-title">贝斯特订单</div>';
+      html += '<div class="preview-item"><span class="preview-label">业务员</span><div class="preview-value">' + (orderData.业务员 || '-') + '</div></div>';
+      html += '<div class="preview-item"><span class="preview-label">下单日期</span><div class="preview-value">' + (orderData.下单日期 || '-') + '</div></div>';
+      html += '<div class="preview-item"><span class="preview-label">要求交期</span><div class="preview-value">' + (orderData.要求交期 || '-') + '</div></div>';
+      html += '<div class="preview-item"><span class="preview-label">客户</span><div class="preview-value">' + (orderData.客户 || '-') + '</div></div>';
+      html += '<div class="preview-item"><span class="preview-label">地区</span><div class="preview-value">' + (orderData.地区 || '-') + '</div></div>';
+      html += '<div class="preview-item"><span class="preview-label">包装要求</span><div class="preview-value">' + (orderData.包装要求 || '-') + '</div></div>';
+      html += '<div class="preview-item"><span class="preview-label">订单总额</span><div class="preview-value total">¥' + orderData.订单总额 + '</div></div>';
+
+      if (items.length > 0) {
+        html += '<div class="preview-item"><span class="preview-label">订单明细</span><div class="preview-value" style="white-space:pre-wrap;font-size:14px;">';
+        items.forEach(function(item) {
+          html += '\n' + item.row + '. 客户型号: ' + item.customerModel + ' | 贝斯特型号: ' + item.bestModel + ' | 数量: ' + item.quantity + ' | 单价: ' + item.unitPrice + ' | 总值: ' + item.total;
+        });
+        html += '</div></div>';
+      }
+
+      html += '<button class="btn-copy" onclick="copyOrder()">复制订单内容</button>';
+      document.getElementById('previewContent').innerHTML = html;
+      document.getElementById('previewOverlay').classList.add('show');
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', FORM_URL, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            showToast('订单提交成功！');
+          } else {
+            showToast('提交失败，请重试');
+          }
+        }
+      };
+      xhr.send(JSON.stringify(orderData));
+    }
+
+    function copyOrder() {
+      var text = '【贝斯特订单】\n\n';
+      text += '业务员：' + (document.getElementById('salesman').value || '-') + '\n';
+      text += '下单日期：' + (document.getElementById('orderDate').value || '-') + '\n';
+      text += '要求交期：' + (document.getElementById('deliveryDate').value || '-') + '\n';
+      text += '客户：' + (document.getElementById('customer').value || '-') + '\n';
+      text += '地区：' + (document.getElementById('exportArea').value || '-') + '\n';
+      text += '包装要求：' + (document.getElementById('packagingReq').value || '-') + '\n';
+      text += '订单总额：' + document.getElementById('totalAmount').textContent + '\n\n';
+
+      var items = [];
+      document.querySelectorAll('.order-item').forEach(function(item, i) {
+        var qty = item.querySelector('[data-field="quantity"]').value;
+        if (qty) {
+          items.push({
+            row: i + 1,
+            customerModel: item.querySelector('[data-field="customerModel"]').value,
+            bestModel: item.querySelector('[data-field="bestModel"]').value,
+            quantity: qty,
+            unitPrice: item.querySelector('[data-field="unitPrice"]').value,
+            total: item.querySelector('[data-field="totalValue"]').textContent
+          });
+        }
+      });
+
+      if (items.length > 0) {
+        text += '订单明细：\n';
+        items.forEach(function(item) {
+          text += item.row + '. 客户型号: ' + item.customerModel + ' | 贝斯特型号: ' + item.bestModel + ' | 数量: ' + item.quantity + ' | 单价: ' + item.unitPrice + ' | 总值: ' + item.total + '\n';
+        });
+      }
+
+      text += '\n提交时间：' + new Date().toLocaleString('zh-CN');
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showToast('已复制到剪贴板！');
+        }).catch(function() {
+          alert(text);
+        });
+      } else {
+        alert(text);
+      }
+    }
+
+    function showToast(msg) {
+      var toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 2000);
+    }
+
+    bindEvents();
+  </script>
+</body>
+</html>
